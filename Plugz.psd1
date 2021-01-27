@@ -22,6 +22,7 @@
     )
 
     FunctionsToExport    = @(
+        'Import-Plugz',
         'Get-PlugzConfig',
         'Save-PlugzConfig'
     )
