@@ -21,7 +21,10 @@
         }
     )
 
-    FunctionsToExport    = @()
+    FunctionsToExport    = @(
+        'Get-PlugzConfig',
+        'Save-PlugzConfig'
+    )
 
     PrivateData          = @{
 
