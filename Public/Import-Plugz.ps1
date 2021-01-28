@@ -26,7 +26,15 @@ function Import-Plugz
 
         if (Test-Path $Script)
         {
-            . $Script
+            # $rs = Get-Runspace 1
+            # $ss = $rs.SessionStateProxy
+            # $ExecutionContext.SessionState.InvokeCommand.InvokeScript($Script:M.SessionState, {. $Script}, $null, $null)
+            # $MyInvocation.MyCommand.Module.SessionState = $Script:SS
+            # $InvokeCommand.InvokeScript($true, {. $Script}, $null, $null)
+            # $Module = [psmoduleinfo]::new($false)
+            # $Module.SessionState = $Script:GlobalSS
+            # . $Module {. .\foo.ps1}
+            $Script:ec.SessionState.InvokeCommand.InvokeScript($false, {. .\foo.ps1}, $null, $null)
         }
         else
         {
