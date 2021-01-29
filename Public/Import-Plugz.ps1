@@ -17,7 +17,14 @@ function Import-Plugz
 
     $FunctionModule  = [Management.Automation.FunctionInfo].GetProperty("Module")
     $AliasModule     = [Management.Automation.AliasInfo].GetProperty("Module")
-    $AttributesField = [psvariable].GetField("attributes", "Nonpublic, Instance")
+    $AttributesField = if ($PSVersionTable.PSVersion.Major -le 5)
+    {
+        [psvariable].GetField("attributes", "Nonpublic, Instance")
+    }
+    else
+    {
+        [psvariable].GetField("_attributes", "Nonpublic, Instance")
+    }
 
 
     foreach ($Script in $RunFirst)
