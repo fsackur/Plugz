@@ -15,3 +15,12 @@ $Script:PSProfiles = @(
 [Collections.Generic.HashSet[string]]$Deduplicate = @()
 $Script:PSProfilePath = $Script:PSProfiles | Split-Path | Where-Object {$Deduplicate.Add($_)}
 Remove-Variable Deduplicate
+
+
+# When module imported from a profile script, auto-import plugins
+$Caller = (Get-PSCallStack)[1]
+$IsImportedFromUserProfile = $Caller.ScriptName -in $Script:PSProfiles
+if ($IsImportedFromUserProfile)
+{
+    Import-Plugz
+}
