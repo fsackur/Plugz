@@ -9,10 +9,8 @@ function Import-Plugz
     [string[]]$RunFirst   = $Config.RunFirst
     [hashtable[]]$RunWhen = if ($Config.RunWhen) {$Config.RunWhen}
 
-    if (-not $PluginPath)
-    {
-        $PluginPath = $MyInvocation.MyCommand.Module.ModuleBase
-    }
+
+    $PluginPath += $Script:PSProfilePath
 
 
     $FunctionModule  = [Management.Automation.FunctionInfo].GetProperty("Module")
