@@ -15,7 +15,8 @@ function Import-Plugz
     }
 
 
-    $ModuleProperty  = [Management.Automation.FunctionInfo].GetProperty("Module")
+    $FunctionModule  = [Management.Automation.FunctionInfo].GetProperty("Module")
+    $AliasModule     = [Management.Automation.AliasInfo].GetProperty("Module")
     $AttributesField = [psvariable].GetField("attributes", "Nonpublic, Instance")
 
 
@@ -39,7 +40,7 @@ function Import-Plugz
             foreach ($Function in $ScriptModule.ExportedFunctions.Values)
             {
                 # Use reflection to remove the DynamicModule as source
-                $ModuleProperty.SetValue($Function, $null)
+                $FunctionModule.SetValue($Function, $null)
 
                 $Name = $Function.Name
                 Set-Item function:global:$Name $Function
@@ -59,6 +60,21 @@ function Import-Plugz
 
                 # Use reflection to retroactively apply any type constraints, validation, etc
                 $AttributesField.SetValue($NewVariable, $Variable.Attributes)
+            }
+
+            foreach ($Alias in $ScriptModule.ExportedAliases.Values)
+            {
+                $Splat = @{
+                    Name        = $Alias.Name
+                    Description = $Alias.Description
+                    Value       = $Alias.Definition
+                    Option      = $Alias.Options
+                    Scope       = "Global"
+                }
+                $NewAlias = Set-Alias @Splat -PassThru
+
+                # Use reflection to remove the DynamicModule as source
+                $AliasModule.SetValue($NewAlias, $null)
             }
         }
         else
