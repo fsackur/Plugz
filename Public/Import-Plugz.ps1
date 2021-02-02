@@ -3,14 +3,27 @@ function Import-Plugz
     [CmdletBinding()]
     param ()
 
-    $Config = Import-Configuration
+    $Config = Get-PlugzConfig
 
-    [string[]]$PluginPath = $Config.PluginPath
-    [string[]]$RunFirst   = $Config.RunFirst
-    [hashtable[]]$RunWhen = if ($Config.RunWhen) {$Config.RunWhen}
+    $Config.PluginPath += $Script:PSProfilePath
 
 
-    $PluginPath += $Script:PSProfilePath
+    $Scripts = [System.Collections.Generic.List[string]]::new()
+
+    foreach ($Script in $Config.RunFirst)
+    {
+        $Scripts.Add($Script)
+    }
+
+    foreach ($Plug in $Config.RunWhen)
+    {
+        if ($Plug.Condition -and -not (& $Plug.Condition))
+        {
+            continue
+        }
+
+        $Scripts.Add($Plug.Script)
+    }
 
 
     $FunctionModule  = [Management.Automation.FunctionInfo].GetProperty("Module")
@@ -25,94 +38,66 @@ function Import-Plugz
     }
 
 
-    foreach ($Script in $RunFirst)
+    foreach ($Script in $Scripts)
     {
         if (-not [System.IO.Path]::IsPathRooted($Script))
         {
-            $Script = $PluginPath |
+            $Script = $Config.PluginPath |
                 Join-Path -ChildPath $Script |
                 Where-Object {Test-Path $_} |
                 Select-Object -First 1
-
-            if (-not $Script) {continue}
         }
 
-        if (Test-Path $Script)
-        {
-            $ScriptModule = New-Module {. $args} $Script
-            & $ScriptModule {Export-ModuleMember -Variable * -Function * -Alias *}
-
-            foreach ($Function in $ScriptModule.ExportedFunctions.Values)
-            {
-                # Use reflection to remove the DynamicModule as source
-                $FunctionModule.SetValue($Function, $null)
-
-                $Name = $Function.Name
-                Set-Item function:global:$Name $Function
-            }
-
-            foreach ($Variable in $ScriptModule.ExportedVariables.Values)
-            {
-                $Splat = @{
-                    Name        = $Variable.Name
-                    Description = $Variable.Description
-                    Value       = $Variable.Value
-                    Visibility  = $Variable.Visibility
-                    Option      = $Variable.Options
-                    Scope       = "Global"
-                }
-                $NewVariable = Set-Variable @Splat -PassThru
-
-                # Use reflection to retroactively apply any type constraints, validation, etc
-                $AttributesField.SetValue($NewVariable, $Variable.Attributes)
-            }
-
-            foreach ($Alias in $ScriptModule.ExportedAliases.Values)
-            {
-                $Splat = @{
-                    Name        = $Alias.Name
-                    Description = $Alias.Description
-                    Value       = $Alias.Definition
-                    Option      = $Alias.Options
-                    Scope       = "Global"
-                }
-                $NewAlias = Set-Alias @Splat -PassThru
-
-                # Use reflection to remove the DynamicModule as source
-                $AliasModule.SetValue($NewAlias, $null)
-            }
-        }
-        else
+        if (-not (Test-Path $Script -ErrorAction SilentlyContinue))
         {
             Write-Verbose "Can't find script '$Script'."
-        }
-    }
-
-
-    foreach ($Run in $RunWhen)
-    {
-        $Script = $Run.Script
-
-        if ($Run.Condition -and -not (& $Run.Condition))
-        {
             continue
         }
 
-        if (-not [System.IO.Path]::IsPathRooted($Script))
+
+        $ScriptModule = New-Module {. $args} $Script
+        & $ScriptModule {Export-ModuleMember -Variable * -Function * -Alias *}
+
+        foreach ($Function in $ScriptModule.ExportedFunctions.Values)
         {
-            $Script = $PluginPath |
-                Join-Path -ChildPath $Script |
-                Where-Object {Test-Path $_} |
-                Select-Object -First 1
+            # Use reflection to remove the DynamicModule as source
+            $FunctionModule.SetValue($Function, $null)
+
+            $Name = $Function.Name
+            Set-Item function:global:$Name $Function
         }
 
-        if (Test-Path $Script)
+        foreach ($Variable in $ScriptModule.ExportedVariables.Values)
         {
-            . $Script
+            $Splat = @{
+                Name        = $Variable.Name
+                Description = $Variable.Description
+                Value       = $Variable.Value
+                Visibility  = $Variable.Visibility
+                Option      = $Variable.Options
+                Scope       = "Global"
+            }
+            $NewVariable = Set-Variable @Splat -PassThru
+
+            # Use reflection to retroactively apply any type constraints, validation, etc
+            $AttributesField.SetValue($NewVariable, $Variable.Attributes)
         }
-        else
+
+        foreach ($Alias in $ScriptModule.ExportedAliases.Values)
         {
-            Write-Verbose "Can't find script '$Script'."
+            $Splat = @{
+                Name        = $Alias.Name
+                Description = $Alias.Description
+                Value       = $Alias.Definition
+                Option      = $Alias.Options
+                Scope       = "Global"
+            }
+            $NewAlias = Set-Alias @Splat -PassThru
+
+            # Use reflection to remove the DynamicModule as source
+            $AliasModule.SetValue($NewAlias, $null)
         }
+
+
     }
 }

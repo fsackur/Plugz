@@ -3,5 +3,11 @@ function Get-PlugzConfig
     [CmdletBinding()]
     param ()
 
-    Import-Configuration
+    $Config = Import-Configuration
+
+    [ordered]@{
+        PluginPath = [string[]]$Config.PluginPath
+        RunFirst   = [string[]]$Config.RunFirst
+        RunWhen    = [Collections.IDictionary[]]$Config.RunWhen
+    }
 }
