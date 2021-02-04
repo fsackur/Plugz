@@ -22,3 +22,17 @@ if (Test-CalledFromProfile)
 {
     Import-Plugz
 }
+
+
+
+Register-ArgumentCompleter -CommandName Import-Plugz -ParameterName Plugin -ScriptBlock {
+    param
+    (
+        $commandName,
+        $parameterName,
+        $wordToComplete,
+        $commandAst,
+        $fakeBoundParameters
+    )
+    (Get-PlugzConfig).GetFullPluginPath() | gci -Filter "*$wordToComplete*" -Name
+}
