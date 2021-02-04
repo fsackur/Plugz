@@ -1,5 +1,5 @@
 @{
-    ModuleVersion        = '0.1.0'
+    ModuleVersion        = '0.2.0'
 
     GUID                 = 'cfabab54-ea42-4ecf-8201-eefc71731e9b'
     Author               = 'Freddie Sackur'
