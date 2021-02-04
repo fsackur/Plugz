@@ -18,9 +18,7 @@ Remove-Variable Deduplicate
 
 
 # When module imported from a profile script, auto-import plugins
-$Caller = (Get-PSCallStack)[1]
-$IsImportedFromUserProfile = $Caller.ScriptName -in $Script:PSProfiles
-if ($IsImportedFromUserProfile)
+if (Test-CalledFromProfile)
 {
     Import-Plugz
 }
