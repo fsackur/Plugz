@@ -59,9 +59,18 @@ function Import-Plugz
                 Select-Object -First 1
         }
 
-        if (-not (Test-Path $Script -ErrorAction SilentlyContinue))
+        if (-not ($Script -and (Test-Path $Script)))
         {
-            Write-Verbose "Can't find script '$Script'."
+            $Message = "Can't find script '$foreach'."
+            if (Test-CalledFromProfile)
+            {
+                # No-one wants red text in their profile
+                Write-Verbose $Message
+            }
+            else
+            {
+                Write-Error $Message
+            }
             continue
         }
 
