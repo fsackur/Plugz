@@ -5,9 +5,13 @@ function Get-PlugzConfig
 
     $Config = Import-Configuration
 
-    [ordered]@{
+    $Config = [ordered]@{
         PluginPath = [string[]]$Config.PluginPath
         RunFirst   = [string[]]$Config.RunFirst
         RunWhen    = [Collections.IDictionary[]]$Config.RunWhen
     }
+
+    $Config | Add-Member ScriptMethod GetFullPluginPath {$this.PluginPath + $Script:PSProfilePath}
+
+    $Config
 }
