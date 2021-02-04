@@ -1,7 +1,11 @@
 function Import-Plugz
 {
     [CmdletBinding()]
-    param ()
+    param
+    (
+        [Parameter()]
+        [string]$Plugin
+    )
 
     $Config = Get-PlugzConfig
 
@@ -10,19 +14,26 @@ function Import-Plugz
 
     $Scripts = [System.Collections.Generic.List[string]]::new()
 
-    foreach ($Script in $Config.RunFirst)
+    if ($Plugin)
     {
-        $Scripts.Add($Script)
+        $Scripts.Add($Plugin)
     }
-
-    foreach ($Plug in $Config.RunWhen)
+    else
     {
-        if ($Plug.Condition -and -not (& $Plug.Condition))
+        foreach ($Script in $Config.RunFirst)
         {
-            continue
+            $Scripts.Add($Script)
         }
 
-        $Scripts.Add($Plug.Script)
+        foreach ($Plug in $Config.RunWhen)
+        {
+            if ($Plug.Condition -and -not (& $Plug.Condition))
+            {
+                continue
+            }
+
+            $Scripts.Add($Plug.Script)
+        }
     }
 
 
