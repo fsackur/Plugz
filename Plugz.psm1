@@ -25,7 +25,7 @@ if (Test-CalledFromProfile)
 
 
 
-Register-ArgumentCompleter -CommandName Import-Plugz -ParameterName Plugin -ScriptBlock {
+Register-ArgumentCompleter -CommandName Import-Plugz, Export-PlugzProfile -ParameterName Plugin -ScriptBlock {
     param
     (
         $commandName,

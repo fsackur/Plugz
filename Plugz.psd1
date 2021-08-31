@@ -22,8 +22,9 @@
     )
 
     FunctionsToExport    = @(
-        'Import-Plugz',
         'Get-PlugzConfig',
+        'Export-PlugzProfile',
+        'Import-Plugz',
         'Save-PlugzConfig'
     )
 
@@ -37,4 +38,3 @@
         }
     }
 }
-
