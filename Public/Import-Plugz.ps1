@@ -53,15 +53,16 @@ function Import-Plugz
     {
         if (-not [System.IO.Path]::IsPathRooted($Script))
         {
-            $Script = $Config.PluginPath |
+            $Config.PluginPath |
                 Join-Path -ChildPath $Script |
                 Where-Object {Test-Path $_} |
-                Select-Object -First 1
+                Select-Object -First 1 |
+                ForEach-Object {$Script = $_}
         }
 
         if (-not ($Script -and (Test-Path $Script)))
         {
-            $Message = "Can't find script '$foreach'."
+            $Message = "Can't find script '$Script'."
             if (Test-CalledFromProfile)
             {
                 # No-one wants red text in their profile
